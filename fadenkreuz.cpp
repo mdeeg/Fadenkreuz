@@ -38,7 +38,7 @@ SOFTWARE.
  */
 
 // some strings
-#define APPNAME				"Fadenkreuz"								
+#define APPNAME			"Fadenkreuz"								
 #define WINDOW_CLASSNAME	"FadenkreuzClass"
 #define SHAPE_SETTING		"Shape"
 #define COLOR_SETTING		"Color"
@@ -48,27 +48,27 @@ SOFTWARE.
 #define Y_OFFSET_SETTING	"Y-offset"
 
 // hotkey IDs
-#define HOTKEY_EXIT					1000						// hotkey ID for exiting the crosshairs app
-#define HOTKEY_TOGGLE				1001						// hotkey ID for enabling/disabling the crosshairs
-#define HOTKEY_NEXT_SHAPE			1002						// hotkey ID for selecting next crosshairs shape
-#define HOTKEY_PREV_SHAPE			1003						// hotkey ID for selecting previous crosshairs shape
+#define HOTKEY_EXIT			1000						// hotkey ID for exiting the crosshairs app
+#define HOTKEY_TOGGLE			1001						// hotkey ID for enabling/disabling the crosshairs
+#define HOTKEY_NEXT_SHAPE		1002						// hotkey ID for selecting next crosshairs shape
+#define HOTKEY_PREV_SHAPE		1003						// hotkey ID for selecting previous crosshairs shape
 #define HOTKEY_INCREASE_SIZE		1004						// hotkey ID for increasing the crosshairs size
 #define HOTKEY_DECREASE_SIZE		1005						// hotkey ID for decreasing the crosshairs size
-#define HOTKEY_NEXT_COLOR 			1006						// hotkey ID for selecting next crosshairs color
-#define HOTKEY_PREV_COLOR 			1007						// hotkey ID for selecting previous crosshairs color
+#define HOTKEY_NEXT_COLOR 		1006						// hotkey ID for selecting next crosshairs color
+#define HOTKEY_PREV_COLOR 		1007						// hotkey ID for selecting previous crosshairs color
 #define HOTKEY_INCREASE_THICKNESS	1008						// hotkey ID for increasing the pen thickness (width) for drawing the crosshairs
 #define HOTKEY_DECREASE_THICKNESS	1009						// hotkey ID for decreasing the pen thickness (width) for drawing the crosshairs
-#define HOTKEY_INC_X_OFFSET			1010						// hotkey ID for increasing the crosshairs X offset from the screen center
-#define HOTKEY_DEC_X_OFFSET			1011						// hotkey ID for decreasing the crosshairs X offset from the screen center
-#define HOTKEY_INC_Y_OFFSET			1012						// hotkey ID for increasing the crosshairs Y offset from the screen center
-#define HOTKEY_DEC_Y_OFFSET			1013						// hotkey ID for decreasing the crosshairs Y offset from the screen center
-#define HOTKEY_CENTER				1014						// hotkey ID for centering the crosshairs
+#define HOTKEY_INC_X_OFFSET		1010						// hotkey ID for increasing the crosshairs X offset from the screen center
+#define HOTKEY_DEC_X_OFFSET		1011						// hotkey ID for decreasing the crosshairs X offset from the screen center
+#define HOTKEY_INC_Y_OFFSET		1012						// hotkey ID for increasing the crosshairs Y offset from the screen center
+#define HOTKEY_DEC_Y_OFFSET		1013						// hotkey ID for decreasing the crosshairs Y offset from the screen center
+#define HOTKEY_CENTER			1014						// hotkey ID for centering the crosshairs
 #define HOTKEY_LOAD_SETTINGS		1015						// hotkey ID for loading settings from the Windows registry
 #define HOTKEY_SAVE_SETTINGS		1016						// hotkey ID for saving settings from the Windows registry
 
 // crosshairs constants
-#define MAX_CROSSHAIRS_SIZE		64								// max. crosshairs size in pixels
-#define MAX_PEN_WIDTH			4								// max. pen width for drawing the crosshairs
+#define MAX_CROSSHAIRS_SIZE		64						// max. crosshairs size in pixels
+#define MAX_PEN_WIDTH			4						// max. pen width for drawing the crosshairs
 #define DELAY_OVERLAY_UPDATE	1000							// time interval in milliseconds for updating the overlay window
 
 /*
@@ -83,21 +83,21 @@ void SaveSettings();
 /*
  * GLOBAL VARIABLES
  */
-HINSTANCE hInst;												// application instance handle
+HINSTANCE hInst;									// application instance handle
 
 // crosshairs parameters
-int8_t penWidth = 1;											// pen width
-int8_t crosshairsSize = 10;										// size of crosshairs
-int32_t x_offset = 0;											// crosshairs X offset from screen center
-int32_t y_offset = 0;											// crosshairs Y offset from screen center
-int32_t max_x_offset = 0;										// max. x offset
-int32_t max_y_offset = 0;										// max. y offset
-bool crosshairsVisible = true;									// flag for crosshairs visibility
+int8_t penWidth = 1;									// pen width
+int8_t crosshairsSize = 10;								// size of crosshairs
+int32_t x_offset = 0;									// crosshairs X offset from screen center
+int32_t y_offset = 0;									// crosshairs Y offset from screen center
+int32_t max_x_offset = 0;								// max. x offset
+int32_t max_y_offset = 0;								// max. y offset
+bool crosshairsVisible = true;								// flag for crosshairs visibility
 
 
 // defined colors
 COLORREF TRANSPARENT_COLOR = RGB(0, 0, 0);						// set transparent color
-COLORREF COLORS[] = {											// defined crosshairs colors
+COLORREF COLORS[] = {									// defined crosshairs colors
 	RGB(255, 0, 0),			// red
 	RGB(0, 255, 0),			// green
 	RGB(0, 0, 255),			// blue
@@ -107,10 +107,10 @@ COLORREF COLORS[] = {											// defined crosshairs colors
 	RGB(255, 255, 255),		// white
 	RGB(128, 128, 128),		// gray
 };
-uint8_t numColors = sizeof(COLORS) / sizeof(COLORREF);			// number of available colors
-int8_t currentColor = 0;										// currently used color (zero-indexed)
-uint8_t numShapes = 6;											// number of crosshairs shapes
-int8_t currentShape = 0;										// currently used crosshairs shape (zero-indexed)
+uint8_t numColors = sizeof(COLORS) / sizeof(COLORREF);					// number of available colors
+int8_t currentColor = 0;								// currently used color (zero-indexed)
+uint8_t numShapes = 6;									// number of crosshairs shapes
+int8_t currentShape = 0;								// currently used crosshairs shape (zero-indexed)
  
 /*
  * WinMain application entry point
