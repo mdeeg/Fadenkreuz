@@ -51,7 +51,7 @@ You can control `Fadenkreuz` using the following hotkeys.
 | \<F7\>            | Increase crosshairs size                  |
 | \<CTRL\> + \<F7\> | Decrease crosshairs size                  |
 | \<F8\>            | Increase crosshairs thickness             |
-| \<CTRL\> + \<F8\> | Decrease crosshairs thicksess             |
+| \<CTRL\> + \<F8\> | Decrease crosshairs thickness             |
 | \<F9\>            | Exit `Fadenkreuz` app                     |
 | \<F10\>           | Load settings from Windows registry       |
 | \<F11\>           | Save current settings to Windows registry |
