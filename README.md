@@ -61,6 +61,8 @@ You can control `Fadenkreuz` using the following hotkeys.
 
 `Fadenkreuz` uses a layered window created with the flag `WS_EX_LAYERED` for showing the crosshairs, and updates its content using the Windows API method [UpdateLayeredWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-updatelayeredwindow). This layered window is periodically updated to the top window using the Windows API method [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos).
 
+Application settings are stored in the Windows registry key `HKEY_CURRENT_USER\Fadenkreuz`.
+
 
 ## Disclaimer
 
