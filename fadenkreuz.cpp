@@ -31,14 +31,18 @@ SOFTWARE.
 #include <tchar.h>
 #include <windows.h>  
 
+#include "gdiplus.h"
+
 #include "resource.h"
+
+using namespace Gdiplus; 
 
 /*
  * CONSTANTS
  */
 
 // some strings
-#define APPNAME			"Fadenkreuz"								
+#define APPNAME				"Fadenkreuz"								
 #define WINDOW_CLASSNAME	"FadenkreuzClass"
 #define SHAPE_SETTING		"Shape"
 #define COLOR_SETTING		"Color"
@@ -48,27 +52,27 @@ SOFTWARE.
 #define Y_OFFSET_SETTING	"Y-offset"
 
 // hotkey IDs
-#define HOTKEY_EXIT			1000						// hotkey ID for exiting the crosshairs app
-#define HOTKEY_TOGGLE			1001						// hotkey ID for enabling/disabling the crosshairs
-#define HOTKEY_NEXT_SHAPE		1002						// hotkey ID for selecting next crosshairs shape
-#define HOTKEY_PREV_SHAPE		1003						// hotkey ID for selecting previous crosshairs shape
+#define HOTKEY_EXIT					1000						// hotkey ID for exiting the crosshairs app
+#define HOTKEY_TOGGLE				1001						// hotkey ID for enabling/disabling the crosshairs
+#define HOTKEY_NEXT_SHAPE			1002						// hotkey ID for selecting next crosshairs shape
+#define HOTKEY_PREV_SHAPE			1003						// hotkey ID for selecting previous crosshairs shape
 #define HOTKEY_INCREASE_SIZE		1004						// hotkey ID for increasing the crosshairs size
 #define HOTKEY_DECREASE_SIZE		1005						// hotkey ID for decreasing the crosshairs size
-#define HOTKEY_NEXT_COLOR 		1006						// hotkey ID for selecting next crosshairs color
-#define HOTKEY_PREV_COLOR 		1007						// hotkey ID for selecting previous crosshairs color
+#define HOTKEY_NEXT_COLOR 			1006						// hotkey ID for selecting next crosshairs color
+#define HOTKEY_PREV_COLOR 			1007						// hotkey ID for selecting previous crosshairs color
 #define HOTKEY_INCREASE_THICKNESS	1008						// hotkey ID for increasing the pen thickness (width) for drawing the crosshairs
 #define HOTKEY_DECREASE_THICKNESS	1009						// hotkey ID for decreasing the pen thickness (width) for drawing the crosshairs
-#define HOTKEY_INC_X_OFFSET		1010						// hotkey ID for increasing the crosshairs X offset from the screen center
-#define HOTKEY_DEC_X_OFFSET		1011						// hotkey ID for decreasing the crosshairs X offset from the screen center
-#define HOTKEY_INC_Y_OFFSET		1012						// hotkey ID for increasing the crosshairs Y offset from the screen center
-#define HOTKEY_DEC_Y_OFFSET		1013						// hotkey ID for decreasing the crosshairs Y offset from the screen center
-#define HOTKEY_CENTER			1014						// hotkey ID for centering the crosshairs
+#define HOTKEY_INC_X_OFFSET			1010						// hotkey ID for increasing the crosshairs X offset from the screen center
+#define HOTKEY_DEC_X_OFFSET			1011						// hotkey ID for decreasing the crosshairs X offset from the screen center
+#define HOTKEY_INC_Y_OFFSET			1012						// hotkey ID for increasing the crosshairs Y offset from the screen center
+#define HOTKEY_DEC_Y_OFFSET			1013						// hotkey ID for decreasing the crosshairs Y offset from the screen center
+#define HOTKEY_CENTER				1014						// hotkey ID for centering the crosshairs
 #define HOTKEY_LOAD_SETTINGS		1015						// hotkey ID for loading settings from the Windows registry
 #define HOTKEY_SAVE_SETTINGS		1016						// hotkey ID for saving settings from the Windows registry
 
 // crosshairs constants
-#define MAX_CROSSHAIRS_SIZE		64						// max. crosshairs size in pixels
-#define MAX_PEN_WIDTH			4						// max. pen width for drawing the crosshairs
+#define MAX_CROSSHAIRS_SIZE		100								// max. crosshairs size in pixels
+#define MAX_PEN_WIDTH			4								// max. pen width for drawing the crosshairs
 #define DELAY_OVERLAY_UPDATE	1000							// time interval in milliseconds for updating the overlay window
 
 /*
@@ -83,40 +87,44 @@ void SaveSettings();
 /*
  * GLOBAL VARIABLES
  */
-HINSTANCE hInst;									// application instance handle
+HINSTANCE hInst;												// application instance handle
 
 // crosshairs parameters
-int8_t penWidth = 1;									// pen width
-int8_t crosshairsSize = 10;								// size of crosshairs
-int32_t x_offset = 0;									// crosshairs X offset from screen center
-int32_t y_offset = 0;									// crosshairs Y offset from screen center
-int32_t max_x_offset = 0;								// max. x offset
-int32_t max_y_offset = 0;								// max. y offset
-bool crosshairsVisible = true;								// flag for crosshairs visibility
-
+int8_t penWidth = 1;											// pen width
+int8_t crosshairsSize = 16;										// size of crosshairs
+int32_t x_offset = 0;											// crosshairs X offset from screen center
+int32_t y_offset = 0;											// crosshairs Y offset from screen center
+int32_t max_x_offset = 0;										// max. x offset
+int32_t max_y_offset = 0;										// max. y offset
+bool crosshairsVisible = true;									// flag for crosshairs visibility
 
 // defined colors
 COLORREF TRANSPARENT_COLOR = RGB(0, 0, 0);						// set transparent color
-COLORREF COLORS[] = {									// defined crosshairs colors
-	RGB(255, 0, 0),			// red
-	RGB(0, 255, 0),			// green
-	RGB(0, 0, 255),			// blue
-	RGB(0, 255, 255),		// cyan
-	RGB(255, 255, 0),		// yellow
-	RGB(255, 0, 255),		// pink
-	RGB(255, 255, 255),		// white
-	RGB(128, 128, 128),		// gray
+Color COLORS[] = {												// defined crosshairs colors
+	Color(254, 255, 0, 0),			// red
+	Color(254, 0, 255, 0),			// green
+	Color(254, 0, 0, 255),			// blue
+	Color(254, 0, 255, 255),		// cyan
+	Color(254, 255, 255, 0),		// yellow
+	Color(254, 255, 0, 255),		// pink
+	Color(254, 255, 255, 255),		// white
+	Color(254, 128, 128, 128),		// gray
 };
-uint8_t numColors = sizeof(COLORS) / sizeof(COLORREF);					// number of available colors
-int8_t currentColor = 0;								// currently used color (zero-indexed)
-uint8_t numShapes = 6;									// number of crosshairs shapes
-int8_t currentShape = 0;								// currently used crosshairs shape (zero-indexed)
+uint8_t numColors = sizeof(COLORS) / sizeof(Color);				// number of available colors
+int8_t currentColor = 0;										// currently used color (zero-indexed)
+uint8_t numShapes = 15;											// number of crosshairs shapes
+int8_t currentShape = 0;										// currently used crosshairs shape (zero-indexed)
  
 /*
  * WinMain application entry point
  */
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {  
 	MSG msg;  
+
+	// initialize GDI+
+	GdiplusStartupInput gdiplusStartupInput;  
+	ULONG_PTR gdiplusToken;  
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	// set instance handle
 	hInst = hInstance;  
@@ -245,6 +253,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		TranslateMessage(&msg);  
 		DispatchMessage(&msg);  
 	}  
+
+	// cleanup GDI+
+	GdiplusShutdown(gdiplusToken);
 
 	return (int)msg.wParam;  
 }
@@ -453,98 +464,139 @@ void DrawOverlay(HWND hwnd) {
     HBITMAP hBitmap = CreateCompatibleBitmap(hdcScreen, screenWidth, screenHeight);
     HBITMAP hOldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
 
-    // make the background transparent
-    HBRUSH hBrush = CreateSolidBrush(TRANSPARENT_COLOR);
-    RECT fillRect = {0, 0, screenWidth, screenHeight};
-    FillRect(hdcMem, &fillRect, hBrush);
-    DeleteObject(hBrush);
+	Graphics graphics(hdcMem);
+	// graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
 
 	// draw crosshairs
 	if (crosshairsVisible) {
 		// draw the crosshairs
-		HPEN hPen = CreatePen(PS_SOLID, 1, COLORS[currentColor]);
-		HPEN hOldPen = (HPEN)SelectObject(hdcMem, hPen);
-		hBrush = CreateSolidBrush(COLORS[currentColor]);
-		HBRUSH hBrushNegative = CreateSolidBrush(TRANSPARENT_COLOR);
-
-		RECT rect;
-		RECT negativeRect;
 		int sideLength = crosshairsSize / 2;
+
+		// create pen
+		Pen pen(COLORS[currentColor], penWidth);
+		pen.SetAlignment(PenAlignmentCenter);
+
+		// create brush
+		SolidBrush brush(COLORS[currentColor]);
 
 		// draw selected crosshairs shape
 		switch (currentShape) {
 			case 0:
-				rect = {centerX - crosshairsSize, centerY - penWidth, centerX + crosshairsSize, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
-
-				rect = {centerX - penWidth, centerY - crosshairsSize, centerX + penWidth, centerY + crosshairsSize};
-				FillRect(hdcMem, &rect, hBrush);
+				// cross
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY + crosshairsSize);
 				break;
 
 			case 1:
-				rect = {centerX - crosshairsSize, centerY - penWidth, centerX + crosshairsSize, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
-
-				rect = {centerX - penWidth, centerY - crosshairsSize, centerX + penWidth, centerY + crosshairsSize};
-				FillRect(hdcMem, &rect, hBrush);
-
-				negativeRect = {centerX - penWidth, centerY - penWidth, centerX + penWidth, centerY + penWidth};
-				FillRect(hdcMem, &negativeRect, hBrushNegative);
+				// cross with small gap in the center
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - penWidth, centerY);
+				graphics.DrawLine(&pen, centerX + penWidth, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - penWidth);
+				graphics.DrawLine(&pen, centerX, centerY + penWidth, centerX, centerY + crosshairsSize);
 				break;
 
 			case 2:
-				rect = {centerX - crosshairsSize, centerY - penWidth, centerX + crosshairsSize, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
-
-				rect = {centerX - penWidth, centerY - crosshairsSize, centerX + penWidth, centerY + crosshairsSize};
-				FillRect(hdcMem, &rect, hBrush);
-
-				negativeRect = {centerX - sideLength, centerY - sideLength, centerX + sideLength, centerY + sideLength};
-				FillRect(hdcMem, &negativeRect, hBrushNegative);
+				// cross with a large gap in the center
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength, centerY);
+				graphics.DrawLine(&pen, centerX + sideLength, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength);
+				graphics.DrawLine(&pen, centerX, centerY + sideLength, centerX, centerY + crosshairsSize);
 				break;
 
 			case 3:
-				rect = {centerX - crosshairsSize, centerY - penWidth, centerX + crosshairsSize, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
-
-				rect = {centerX - penWidth, centerY - crosshairsSize, centerX + penWidth, centerY + crosshairsSize};
-				FillRect(hdcMem, &rect, hBrush);
-
-				negativeRect = {centerX - sideLength, centerY - sideLength, centerX + sideLength, centerY + sideLength};
-				FillRect(hdcMem, &negativeRect, hBrushNegative);
-
-				rect = {centerX - penWidth, centerY - penWidth, centerX + penWidth, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
+				// cross with a small gap in the center
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength * (0.75), centerY);
+				graphics.DrawLine(&pen, centerX + sideLength * (0.75), centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength * (0.75));
+				graphics.DrawLine(&pen, centerX, centerY + sideLength * (0.75), centerX, centerY + crosshairsSize);
 				break;
 
 			case 4:
-				DeleteObject(hPen);
-				hPen = CreatePen(PS_SOLID, penWidth, COLORS[currentColor]);
-				SelectObject(hdcMem, hPen);
-
-				SelectObject(hdcMem, hBrushNegative);
-				rect = {centerX - crosshairsSize, centerY - crosshairsSize, centerX + crosshairsSize, centerY + crosshairsSize};
-				Ellipse(hdcMem, rect.left, rect.top, rect.right, rect.bottom);
-
-				SelectObject(hdcMem, hBrush);
-				rect = {centerX - penWidth, centerY - penWidth, centerX + penWidth, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
+				// cross with a small gap in the center
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength / 2, centerY);
+				graphics.DrawLine(&pen, centerX + sideLength / 2, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength / 2);
+				graphics.DrawLine(&pen, centerX, centerY + sideLength / 2, centerX, centerY + crosshairsSize);
 				break;
 
 			case 5:
-				SelectObject(hdcMem, hBrush);
-				rect = {centerX - penWidth, centerY - penWidth, centerX + penWidth, centerY + penWidth};
-				FillRect(hdcMem, &rect, hBrush);
+				// cross with a large gap in the center and a center dot
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength, centerY);
+				graphics.DrawLine(&pen, centerX + sideLength, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength);
+				graphics.DrawLine(&pen, centerX, centerY + sideLength, centerX, centerY + crosshairsSize);
+				graphics.FillRectangle(&brush, centerX - penWidth / 2, centerY - penWidth / 2, penWidth, penWidth);
+				break;
+
+			case 6:
+				// cross with a medium gap in the center and center dot
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength * 0.75, centerY);
+				graphics.DrawLine(&pen, centerX + sideLength * 0.75, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength * 0.75);
+				graphics.DrawLine(&pen, centerX, centerY + sideLength * 0.75, centerX, centerY + crosshairsSize);
+				graphics.FillRectangle(&brush, centerX - penWidth / 2, centerY - penWidth / 2, penWidth, penWidth);
+				break;
+
+			case 7:
+				// cross with a small gap in the center and center dot
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX - sideLength / 2, centerY);
+				graphics.DrawLine(&pen, centerX + sideLength / 2, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY - sideLength / 2);
+				graphics.DrawLine(&pen, centerX, centerY + sideLength / 2, centerX, centerY + crosshairsSize);
+				graphics.FillRectangle(&brush, centerX - penWidth / 2, centerY - penWidth / 2, penWidth, penWidth);
+				break;
+
+			case 8:
+				// circle with a center dot
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.DrawEllipse(&pen, centerX - crosshairsSize, centerY - crosshairsSize, 2 * crosshairsSize, 2 * crosshairsSize);
+				graphics.FillRectangle(&brush, centerX - penWidth / 2, centerY - penWidth / 2, penWidth, penWidth);
+				break;
+
+			case 9:
+				// circle with a small center cross
+				graphics.DrawLine(&pen, centerX - crosshairsSize / 4, centerY, centerX + crosshairsSize / 4, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize / 4, centerX, centerY + crosshairsSize / 4);
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.DrawEllipse(&pen, centerX - crosshairsSize, centerY - crosshairsSize, 2 * crosshairsSize, 2 * crosshairsSize);
+				break;
+
+			case 10:
+				// center dot
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.FillRectangle(&brush, centerX - penWidth / 2, centerY - penWidth / 2, penWidth, penWidth);
+				break;
+
+			case 11:
+				// cross with large circle
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY + crosshairsSize);
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.DrawEllipse(&pen, centerX - crosshairsSize, centerY - crosshairsSize,  2 * crosshairsSize, 2 * crosshairsSize);
+				break;
+
+			case 12:
+				// cross with medium circle
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY + crosshairsSize);
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.DrawEllipse(&pen, centerX - crosshairsSize / 2, centerY - crosshairsSize / 2, crosshairsSize, crosshairsSize);
+				break;
+
+			case 13:
+				// cross with medium rectangle
+				graphics.DrawLine(&pen, centerX - crosshairsSize, centerY, centerX + crosshairsSize, centerY);
+				graphics.DrawLine(&pen, centerX, centerY - crosshairsSize, centerX, centerY + crosshairsSize);
+				graphics.DrawRectangle(&pen, centerX - crosshairsSize / 2, centerY - crosshairsSize / 2, crosshairsSize, crosshairsSize);
+				break;
+
+			case 14:
+				// circle with one lower vertical line
+				graphics.DrawLine(&pen, centerX, centerY, centerX, centerY + crosshairsSize);
+				graphics.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+				graphics.DrawEllipse(&pen, centerX - crosshairsSize, centerY - crosshairsSize, 2 * crosshairsSize, 2 * crosshairsSize);
 				break;
 		}
-
-		// select old pen
-		SelectObject(hdcMem, hOldPen);
-
-		// cleanup
-		DeleteObject(hPen);
-		DeleteObject(hBrush);
-		DeleteObject(hBrushNegative);
 	}
 
     // use UpdateLayeredWindow to transfer the bitmap to the layered window
@@ -553,7 +605,7 @@ void DrawOverlay(HWND hwnd) {
     POINT ptSrc = {0, 0};
     BLENDFUNCTION blend = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
     HDC hdcWindow = GetDC(hwnd);
-    UpdateLayeredWindow(hwnd, hdcWindow, &ptPos, &sizeWnd, hdcMem, &ptSrc, RGB(0, 0, 0), &blend, ULW_COLORKEY);
+    UpdateLayeredWindow(hwnd, hdcWindow, &ptPos, &sizeWnd, hdcMem, &ptSrc, TRANSPARENT_COLOR, &blend, ULW_ALPHA);
 
     // cleanup
     SelectObject(hdcMem, hOldBitmap);
