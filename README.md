@@ -7,6 +7,7 @@ It was developed for using it with [Fortnite](https://www.fortnite.com/), but it
 **Warning**: Depending on the games you play, using a third-party crosshairs app like `Fadenkreuz` drawing an overlay (layered window) above other application windows may be considered as cheating and get you banned.
 
 `Fadenkreuz` currently supports the following crosshairs shapes, whose size and color can be simply changed using hotkeys.
+
 ![Supported crosshairs shapes](crosshairs.png)
 
 
