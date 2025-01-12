@@ -6,6 +6,9 @@ It was developed for using it with [Fortnite](https://www.fortnite.com/), but it
 
 **Warning**: Depending on the games you play, using a third-party crosshairs app like `Fadenkreuz` drawing an overlay (layered window) above other application windows may be considered as cheating and get you banned.
 
+`Fadenkreuz` currently supports the following crosshairs shapes, whose size and color can be simply changed using hotkeys.
+![Supported crosshairs shapes](crosshairs.png)
+
 
 ## Installation
 
@@ -26,7 +29,7 @@ set GCC="C:\msys64\ucrt64\bin\gcc.exe"
 set WINDRES="C:\msys64\ucrt64\bin\windres.exe"
 
 %WINDRES% -i fadenkreuz.rc -O coff fadenkreuz.res
-%GCC% -fdiagnostics-color=always -fpermissive -municode -s -O3 fadenkreuz.cpp fadenkreuz.res -mwindows -lgdi32 -luser32 -o Fadenkreuz.exe
+%GCC% -fdiagnostics-color=always -municode -s -O3 fadenkreuz.cpp fadenkreuz.res -mwindows -lgdi32 -luser32 -o Fadenkreuz.exe
 ```
 
 
@@ -60,6 +63,8 @@ You can control `Fadenkreuz` using the following hotkeys.
 ## Operating mode
 
 `Fadenkreuz` uses a layered window created with the flag `WS_EX_LAYERED` for showing the crosshairs, and updates its content using the Windows API method [UpdateLayeredWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-updatelayeredwindow). This layered window is periodically updated to the top window using the Windows API method [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos).
+
+The crosshairs are drawn using [GDI+](https://learn.microsoft.com/en-us/windows/win32/api/_gdiplus/) functionality provided by Windows.
 
 Application settings are stored in the Windows registry key `HKEY_CURRENT_USER\Fadenkreuz`.
 
